@@ -96,9 +96,9 @@ TVBS亚洲,http://38.64.72.148:80/hls/modn/list/4005/playlist.m3u8?$1920x1080
 TVBS新闻,http://4gtv.mumi.rip:9877/291/4gtv-4gtv072/index.m3u8$640x360
 TVBS欢乐,http://4gtv.mumi.rip:9877/184/4gtv-4gtv068/index.m3u8$854x480
 TVB星河台,https://edge6a.v2h-cdn.com/xinghe/xinghe.stream/chunklist.m3u8$1280x720
-東森新聞,http://37.27.111.214:8080/live/20/hls.m3u8$1280x720
+东森新聞,http://37.27.111.214:8080/live/20/hls.m3u8$1280x720
 东森新闻,http://37.27.111.214:8080/live/20/hls.m3u8$1280x720
-東森新聞,http://shuma004.chunfengyun.top:8080/live/20/hls.m3u8$1280x720
+东森新聞,http://shuma004.chunfengyun.top:8080/live/20/hls.m3u8$1280x720
 东森新闻http://tianhewan.top/ZIPP.php?url=http://211.72.65.236:8540/.m3u8$1920x1080
 东森新闻,http://shuma004.chunfengyun.top:8080/live/20/hls.m3u8$1280x720
 大爱,https://epg.pw/stream/8dab0126668b960d4130c12b25e9278ffda43f5b66fa986287ed34cd97cbd721.m3u8$1280x720
