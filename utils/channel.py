@@ -1,5 +1,9 @@
 from utils.config import config, resource_path
-from utils.tools import check_url_by_patterns, get_total_urls_from_info_list
+from utils.tools import (
+    check_url_by_patterns,
+    get_total_urls_from_info_list,
+    check_ipv6_support,
+)
 from utils.speed import sort_urls_by_speed_and_resolution, is_ffmpeg_installed
 import os
 from collections import defaultdict
@@ -65,6 +69,8 @@ def get_channel_data_from_file(channels=None, file=None, from_result=False):
             if match is not None and match.group(1):
                 name = match.group(1).strip()
                 if name not in channels[current_category]:
+                    if from_result:
+                        continue
                     channels[current_category][name] = []
                 if match.group(3):
                     url = match.group(3).strip()
@@ -101,16 +107,42 @@ def format_channel_name(name):
     """
     if config.getboolean("Settings", "open_keep_all"):
         return name
-    if "cctv" in name.lower():
-        name = re.sub(r"[\u4e00-\u9fa5]", "", name)
     cc = OpenCC("t2s")
     name = cc.convert(name)
-    sub_pattern = r"-|_|\((.*?)\)|\（(.*?)\）|\[(.*?)\]| |频道|普清|标清|高清|HD|hd|超清|超高|超高清|中央|央视|台"
+    sub_pattern = r"-|_|\((.*?)\)|\（(.*?)\）|\[(.*?)\]| |｜|频道|普清|标清|高清|HD|hd|超清|超高|超高清|中央|央视|台"
     name = re.sub(sub_pattern, "", name)
     replace_dict = {
         "plus": "+",
         "PLUS": "+",
         "＋": "+",
+        "CCTV1综合": "CCTV1",
+        "CCTV2财经": "CCTV2",
+        "CCTV3综艺": "CCTV3",
+        "CCTV4国际": "CCTV4",
+        "CCTV4中文国际": "CCTV4",
+        "CCTV4欧洲": "CCTV4",
+        "CCTV5体育": "CCTV5",
+        "CCTV5+体育赛视": "CCTV5+",
+        "CCTV5+体育赛事": "CCTV5+",
+        "CCTV5+体育": "CCTV5+",
+        "CCTV6电影": "CCTV6",
+        "CCTV7军事": "CCTV7",
+        "CCTV7军农": "CCTV7",
+        "CCTV7农业": "CCTV7",
+        "CCTV7国防军事": "CCTV7",
+        "CCTV8电视剧": "CCTV8",
+        "CCTV9记录": "CCTV9",
+        "CCTV9纪录": "CCTV9",
+        "CCTV10科教": "CCTV10",
+        "CCTV11戏曲": "CCTV11",
+        "CCTV12社会与法": "CCTV12",
+        "CCTV13新闻": "CCTV13",
+        "CCTV新闻": "CCTV13",
+        "CCTV14少儿": "CCTV14",
+        "CCTV15音乐": "CCTV15",
+        "CCTV16奥林匹克": "CCTV16",
+        "CCTV17农业农村": "CCTV17",
+        "CCTV17农业": "CCTV17",
     }
     for old, new in replace_dict.items():
         name = name.replace(old, new)
@@ -227,7 +259,7 @@ def get_channel_multicast_result(result, search_result):
         info_list = [
             (
                 (
-                    f"http://{url}/rtp/{ip}$cache:{result_region}_{result_type}"
+                    f"http://{url}/rtp/{ip}$cache:{url}"
                     if open_sort
                     else f"http://{url}/rtp/{ip}"
                 ),
@@ -568,7 +600,7 @@ def append_all_method_data_keep_all(
 
 
 async def sort_channel_list(
-    cate, name, info_list, semaphore, ffmpeg=False, callback=None
+    cate, name, info_list, semaphore, ffmpeg=False, ipv6_proxy=None, callback=None
 ):
     """
     Sort the channel list
@@ -578,7 +610,7 @@ async def sort_channel_list(
         try:
             if info_list:
                 sorted_data = await sort_urls_by_speed_and_resolution(
-                    info_list, ffmpeg=ffmpeg, callback=callback
+                    info_list, ffmpeg=ffmpeg, ipv6_proxy=ipv6_proxy, callback=callback
                 )
                 if sorted_data:
                     for (
@@ -604,6 +636,13 @@ async def process_sort_channel_list(data, callback=None):
     Processs the sort channel list
     """
     open_ffmpeg = config.getboolean("Settings", "open_ffmpeg")
+    ipv_type = config.get("Settings", "ipv_type").lower()
+    open_ipv6 = "ipv6" in ipv_type or "all" in ipv_type or "全部" in ipv_type
+    ipv6_proxy = None
+    if open_ipv6:
+        ipv6_proxy = (
+            None if check_ipv6_support() else "http://www.ipv6proxy.net/go.php?u="
+        )
     ffmpeg_installed = is_ffmpeg_installed()
     if open_ffmpeg and not ffmpeg_installed:
         print("FFmpeg is not installed, using requests for sorting.")
@@ -617,6 +656,7 @@ async def process_sort_channel_list(data, callback=None):
                 info_list,
                 semaphore,
                 ffmpeg=is_ffmpeg,
+                ipv6_proxy=ipv6_proxy,
                 callback=callback,
             )
         )
